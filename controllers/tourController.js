@@ -3,7 +3,49 @@ const Tour = require("../models/tourModel");
 //route handlers
 exports.getAllTours = async (req, res) => {
     try {
-        const tours = await Tour.find();
+        //build query
+        const queryObj = { ...req.query };
+        const excludedFields = ["page", "sort", "limit", "fields"];
+        excludedFields.forEach((el) => delete queryObj[el]);
+
+        // { difficulty: 'easy', duration: { $gte: '5' } }  mongo
+        // { difficulty: 'easy', duration: { gte: '5' } } postman
+        // gte, gt, lte, lt
+        let queryStr = JSON.stringify(queryObj);
+        queryStr = queryStr.replace(
+            /\b(gte|gt|lte|lt)\b/g,
+            (match) => `$${match}`,
+        );
+        console.log(JSON.parse(queryStr));
+
+        // const tours = await Tour.find()
+        //     .where("duration")
+        //     .equals(5)
+        //     .where("difficulty")
+        //     .equals("easy");
+
+        let query = Tour.find(JSON.parse(queryStr));
+
+        //sort
+        if (req.query.sort) {
+            const sortBy = req.query.sort.split(",").join(" ");
+            console.log(sortBy);
+            query = query.sort(sortBy);
+        } else {
+            query = query.sort("-createdAt");
+        }
+
+        //Field limit
+        if (req.query.fields) {
+            const fields = req.query.fields.split(",").join(" ");
+            query = query.select(fields);
+        } else {
+            query = query.select("-__v"); //exclude __v field while send to client
+        }
+
+        //execute query
+        const tours = await query;
+
         res.json({
             status: "success",
             results: tours.length,
@@ -79,7 +121,7 @@ exports.deleteTour = async (req, res) => {
         await Tour.findByIdAndDelete(req.params.id);
         res.status(204).json({
             status: "success",
-            data: null
+            data: null,
         });
     } catch (error) {
         res.status(404).json({

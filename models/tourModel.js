@@ -48,6 +48,7 @@ const tourSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now(), // mogoose converts mss to todays date
+        select:false
     },
     startDates: [Date],
 });
