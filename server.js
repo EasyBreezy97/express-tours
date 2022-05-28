@@ -13,9 +13,9 @@ mongoose
         useNewUrlParser: true,
         useCreateIndex: true,
         useFindAndModify: false,
-        useUnifiedTopology: true
+        useUnifiedTopology: true,
     })
-    .then(() => console.log("DB CONNECTION SUCCESS"));
+    .then(() => console.log("DB CONNECTION SUCCESS"))
 
 const port = process.env.PORT || 5000;
 
